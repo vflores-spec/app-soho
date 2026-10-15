@@ -1,38 +1,68 @@
-// Traemos los tipos del dominio y el contrato (puerto) que vamos a cumplir.
-// "../../" sube dos carpetas: persistence → adapters → vacancies.
 import { NewVacancy, Vacancy } from '../../domain/Vacancy';
 import { VacancyRepository } from '../../ports/VacancyRepository';
 
-// "implements" es la promesa: "esta clase cumple TODO el contrato VacancyRepository".
-// Si falta un método, TypeScript marca error al instante.
+// Adaptador de salida: cumple el contrato VacancyRepository guardando las vacantes en un arreglo.
 export class InMemoryVacancyRepository implements VacancyRepository {
   // La lista donde se guardan las vacantes. "private" = solo esta clase puede tocarla.
   private vacancies: Vacancy[];
 
-  // El número que usará la próxima vacante que se guarde.
+  // El número que usará la próxima vacante. Solo sube, así que un id eliminado nunca se reutiliza.
   private nextId: number;
 
-  // El constructor se ejecuta al crear el repositorio con "new".
-  // Puede recibir vacantes iniciales (por ejemplo, datos de prueba).
   constructor(initialVacancies: Vacancy[] = []) {
-    // Se copia la lista con [...] para no depender del arreglo original de quien lo envió.
+    // Se copia la lista para no depender del arreglo original.
     this.vacancies = [...initialVacancies];
-    // El siguiente id es la cantidad actual + 1.
     this.nextId = initialVacancies.length + 1;
   }
 
-  // Cumple "findAll" del contrato. "async" hace que devuelva una promesa.
   // Devuelve una COPIA de la lista, para que nadie de afuera pueda modificar la original.
   findAll = async (): Promise<Vacancy[]> => [...this.vacancies];
 
-  // Cumple "save" del contrato: recibe una vacante sin id y devuelve la vacante con id.
+  // Busca una vacante por id.
+  findById = async (id: number): Promise<Vacancy | undefined> => {
+    // "find" recorre la lista y devuelve el primer elemento que cumpla la condición (o undefined).
+    const vacancy = this.vacancies.find((item) => item.id === id);
+
+    // Si existe devuelve una copia; si no, undefined.
+    return vacancy ? { ...vacancy } : undefined;
+  };
+
+  // Guarda una vacante nueva.
   save = async (newVacancy: NewVacancy): Promise<Vacancy> => {
-    // Crea la vacante completa: le asigna el id y sube el contador (nextId++).
-    // "...newVacancy" copia dentro los datos recibidos (title, company, modality, salary).
     const vacancy: Vacancy = { id: this.nextId++, ...newVacancy };
-    // La agrega a la lista en memoria.
     this.vacancies.push(vacancy);
-    // Devuelve la vacante ya guardada.
     return vacancy;
+  };
+
+  // Reemplaza los datos de una vacante existente.
+  update = async (id: number, data: NewVacancy): Promise<Vacancy | undefined> => {
+    // "findIndex" devuelve la posición del elemento en la lista, o -1 si no lo encuentra.
+    const index = this.vacancies.findIndex((item) => item.id === id);
+
+    // Si no existe, informa con undefined (el servicio decidirá qué significa).
+    if (index === -1) {
+      return undefined;
+    }
+
+    // Arma la vacante actualizada conservando el mismo id.
+    const updated: Vacancy = { id, ...data };
+
+    // Reemplaza el elemento en esa posición.
+    this.vacancies[index] = updated;
+    return { ...updated };
+  };
+
+  // Elimina una vacante.
+  remove = async (id: number): Promise<boolean> => {
+    const index = this.vacancies.findIndex((item) => item.id === id);
+
+    // Si no existe, avisa con false.
+    if (index === -1) {
+      return false;
+    }
+
+    // "splice(posición, 1)" quita 1 elemento de la lista en esa posición.
+    this.vacancies.splice(index, 1);
+    return true;
   };
 }
