@@ -1,5 +1,8 @@
 // Importa la aplicación ya configurada
 import app from './app';
+// Carga las variables del archivo .env. Debe ir primero, para que estén disponibles al importar 
+// lo demás.
+import 'dotenv/config';
 
 // Lee el puerto de la variable de entorno PORT; si no existe, usa 3000
 const PORT = Number(process.env.PORT) || 3000;
