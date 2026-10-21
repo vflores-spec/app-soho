@@ -1,31 +1,29 @@
-// Carga el .env para tener TEST_DATABASE_URL (Jest no lo carga solo).
+// Carga el .env para tener TEST_DATABASE_URL | Jest no lo carga solo
 import 'dotenv/config';
 
 import { Pool } from 'pg';
 
-// "../../../../" sube cuatro carpetas hasta src, para entrar a shared.
 import { createPostgresPool } from '../../../../shared/database/postgresPool';
 import { PostgresVacancyRepository } from './PostgresVacancyRepository';
 
-// Datos de ejemplo (datos de prueba en español).
 const sampleVacancy = { title: 'QA Tester', company: 'Tech Andes', modality: 'remoto', salary: 800 };
 
 describe('PostgresVacancyRepository', () => {
   let pool: Pool;
   let repository: PostgresVacancyRepository;
 
-  // Se ejecuta UNA vez antes de todas las pruebas: abre la conexión a la base de PRUEBAS.
+  // Se ejecuta UNA vez antes de todas las pruebas: abre la conexión a la base de PRUEBAS
   beforeAll(() => {
     pool = createPostgresPool(process.env.TEST_DATABASE_URL as string);
     repository = new PostgresVacancyRepository(pool);
   });
 
-  // Se ejecuta antes de CADA prueba: vacía la tabla y reinicia el contador de ids en 1.
+  // Se ejecuta antes de CADA prueba: vacía la tabla y reinicia el contador de ids en 1
   beforeEach(async () => {
     await pool.query('TRUNCATE vacancies RESTART IDENTITY');
   });
 
-  // Se ejecuta UNA vez al final: cierra las conexiones para que Jest pueda terminar.
+  // Se ejecuta UNA vez al final: cierra las conexiones para que Jest pueda terminar
   afterAll(async () => {
     await pool.end();
   });
@@ -37,7 +35,7 @@ describe('PostgresVacancyRepository', () => {
   it('saves a vacancy and assigns an id', async () => {
     const saved = await repository.save(sampleVacancy);
 
-    // El salario vuelve como NÚMERO, gracias al mapeo del adaptador.
+    // El salario vuelve como NÚMERO, gracias al mapeo del adaptador
     expect(saved).toEqual({ id: 1, ...sampleVacancy });
   });
 

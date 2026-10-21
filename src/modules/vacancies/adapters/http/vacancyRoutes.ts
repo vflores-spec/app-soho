@@ -1,14 +1,10 @@
-// "Router" es un mini-grupo de rutas de Express, que luego se conecta a la aplicación.
-import { Router } from 'express';
+import { Router } from "express";
 
-// Error de negocio, para avisar que el identificador recibido no es válido (→ 400).
-import { DomainError } from '../../../../shared/DomainError';
+import { DomainError } from "../../../../shared/DomainError";
 
-// Códigos de estado HTTP con nombre.
-import { HTTP_STATUS } from '../../../../shared/httpStatus';
+import { HTTP_STATUS } from "../../../../shared/httpStatus";
 
-// El servicio con los casos de uso.
-import { VacancyService } from '../../application/VacancyService';
+import { VacancyService } from "../../application/VacancyService";
 
 // Convierte el id que llega como texto ("5") en número (5) y comprueba que sea válido.
 const parseId = (value: string): number => {
@@ -18,7 +14,7 @@ const parseId = (value: string): number => {
   // Debe ser un número entero y positivo (no "abc", ni 1.5, ni -3).
   if (!Number.isInteger(id) || id <= 0) {
     // Si no lo es, se lanza un error de negocio: el usuario envió un dato inválido.
-    throw new DomainError('El identificador no es válido');
+    throw new DomainError("El identificador no es válido");
   }
 
   // Si es válido, lo devuelve ya convertido a número.
@@ -31,7 +27,7 @@ export const createVacancyRouter = (service: VacancyService): Router => {
   const router = Router();
 
   // GET /vacancies → listar todas las vacantes.
-  router.get('/', async (req, res) => {
+  router.get("/", async (req, res) => {
     // Pide la lista al caso de uso "list".
     const vacancies = await service.list();
 
@@ -40,7 +36,7 @@ export const createVacancyRouter = (service: VacancyService): Router => {
   });
 
   // GET /vacancies/:id → ver una vacante.
-  router.get('/:id', async (req, res) => {
+  router.get("/:id", async (req, res) => {
     // Lee el id de la dirección, lo valida y lo convierte; luego pide la vacante al caso de uso.
     const vacancy = await service.getById(parseId(req.params.id));
 
@@ -49,7 +45,7 @@ export const createVacancyRouter = (service: VacancyService): Router => {
   });
 
   // POST /vacancies → crear una vacante.
-  router.post('/', async (req, res) => {
+  router.post("/", async (req, res) => {
     // Pasa los datos del cuerpo al caso de uso; si son inválidos, el dominio lanza DomainError (→ 400).
     const vacancy = await service.create(req.body);
 
@@ -58,7 +54,7 @@ export const createVacancyRouter = (service: VacancyService): Router => {
   });
 
   // PUT /vacancies/:id → editar una vacante.
-  router.put('/:id', async (req, res) => {
+  router.put("/:id", async (req, res) => {
     // Valida el id y pasa, junto con los datos nuevos, al caso de uso "update".
     const vacancy = await service.update(parseId(req.params.id), req.body);
 
@@ -67,7 +63,7 @@ export const createVacancyRouter = (service: VacancyService): Router => {
   });
 
   // DELETE /vacancies/:id → eliminar una vacante.
-  router.delete('/:id', async (req, res) => {
+  router.delete("/:id", async (req, res) => {
     // Valida el id y pide al caso de uso que elimine; si no existe, lanza NotFoundError (→ 404).
     await service.remove(parseId(req.params.id));
 

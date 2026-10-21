@@ -2,13 +2,11 @@
 import { DomainError } from '../../../shared/DomainError';
 import { NotFoundError } from '../../../shared/NotFoundError';
 
-// Importa un repositorio real (en memoria) para entregárselo al servicio en las pruebas.
 import { InMemoryVacancyRepository } from '../adapters/persistence/InMemoryVacancyRepository';
 
-// Importa el servicio que vamos a probar.
 import { VacancyService } from './VacancyService';
 
-// Datos de ejemplo válidos que se reutilizan en las pruebas (datos de prueba en español).
+// Datos de ejemplo válidos que se reutilizan en las pruebas
 const validInput = { title: 'QA Tester', company: 'Tech Andes', modality: 'remoto', salary: 800 };
 
 // Función auxiliar: crea un servicio nuevo con un repositorio vacío, para que cada prueba parta de cero.
