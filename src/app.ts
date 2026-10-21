@@ -17,6 +17,10 @@ import { CompanyService } from './modules/companies/application/CompanyService';
 import { createPostgresPool } from './shared/database/postgresPool';
 import { errorHandler, notFoundHandler } from './shared/httpErrorHandlers';
 
+import { MongoCompanyRepository } from './modules/companies/adapters/persistence/MongoCompanyRepository';
+import { CompanyRepository } from './modules/companies/ports/CompanyRepository';
+import { createMongoClient } from './shared/database/mongoClient';
+
 // Crea la aplicación de Express.
 const app = express();
 
@@ -41,8 +45,13 @@ const vacancyService = new VacancyService(vacancyRepository);
 app.use('/vacancies', createVacancyRouter(vacancyService));
 
 // ---------- Módulo Companies ----------
-// Por ahora, en memoria. En el próximo paso se agrega MongoDB.
-const companyService = new CompanyService(new InMemoryCompanyRepository());
+// Si existe MONGODB_URI se usa MongoDB; si no, la lista en memoria.
+const companyRepository: CompanyRepository = process.env.MONGODB_URI
+  ? new MongoCompanyRepository(createMongoClient(process.env.MONGODB_URI))
+  : new InMemoryCompanyRepository();
+console.log(`Companies persistence: ${process.env.MONGODB_URI ? 'MongoDB' : 'in memory'}`);
+
+const companyService = new CompanyService(companyRepository);
 app.use('/companies', createCompanyRouter(companyService));
 
 // Si ninguna ruta coincidió, responde 404. Va después de todas las rutas.
