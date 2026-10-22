@@ -7,13 +7,16 @@
     "test": "jest",
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
     "dotenv": "^18.0.8",
     "express": "^5.3.0",
     "mongodb": "^6.21.0",
@@ -26,6 +29,7 @@
     "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",
     "jest": "^30.5.2",
+    "prisma": "^7.10.1",
     "supertest": "^7.3.1",
     "ts-jest": "^29.4.14",
     "tsx": "^4.23.15",

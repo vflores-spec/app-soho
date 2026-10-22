@@ -1,0 +1,34 @@
+// GENERATOR: le dice a Prisma cómo y dónde generar el cliente de TypeScript.
+generator client {
+  // El tipo de generador moderno de Prisma 7.
+  provider            = "prisma-client"
+
+  // La carpeta donde se escribirá el código generado (no se sube a Git).
+  output              = "../src/generated/prisma"
+
+  // Formato CommonJS - necesario porque nuestro proyecto usa "require" (ver package.json: "type": "commonjs")
+  moduleFormat        = "cjs"
+
+  // Los imports generados no llevan extensión de archivo.
+  importFileExtension = ""
+}
+
+// DATASOURCE - qué tipo de base de datos usamos. La dirección de conexión va en prisma.config.ts.
+datasource db {
+  provider = "postgresql"
+}
+
+// MODEL: describe una tabla. Esta es la tabla "vacancies" que ya creamos con schema.sql.
+model Vacancy {
+  id       Int     @id @default(autoincrement())
+
+  title    String  @db.VarChar(150)
+
+  company  String  @db.VarChar(150)
+
+  modality String  @db.VarChar(30)
+
+  salary   Decimal @db.Decimal(10, 2)
+
+  @@map("vacancies")
+}
