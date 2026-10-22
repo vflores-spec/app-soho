@@ -24,6 +24,9 @@ import { createMongoClient } from './shared/database/mongoClient';
 import { PrismaVacancyRepository } from './modules/vacancies/adapters/persistence/PrismaVacancyRepository';
 import { createPrismaClient } from './shared/database/prismaClient';
 
+import { MongooseCompanyRepository } from './modules/companies/adapters/persistence/MongooseCompanyRepository';
+import { createMongooseConnection } from './shared/database/mongooseConnection';
+
 // Crea la aplicación de Express.
 const app = express();
 
@@ -70,12 +73,33 @@ console.log(`Vacancies persistence: ${vacanciesAdapterName}`);
 const vacancyService = new VacancyService(vacancyRepository);
 app.use('/vacancies', createVacancyRouter(vacancyService));
 
+// Elige el repositorio de empresas según las variables de entorno.
+const createCompanyRepository = (): { name: string; repository: CompanyRepository } => {
+  const mongodbUri = process.env.MONGODB_URI;
+
+  // Sin MONGODB_URI: lista en memoria.
+  if (!mongodbUri) {
+    return { name: 'in memory', repository: new InMemoryCompanyRepository() };
+  }
+
+  // Con COMPANIES_ADAPTER=mongoose: MongoDB a través de Mongoose (ODM).
+  if (process.env.COMPANIES_ADAPTER === 'mongoose') {
+    return {
+      name: 'MongoDB with Mongoose',
+      repository: new MongooseCompanyRepository(createMongooseConnection(mongodbUri)),
+    };
+  }
+
+  // Por defecto: MongoDB con el controlador oficial.
+  return {
+    name: 'MongoDB with the official driver',
+    repository: new MongoCompanyRepository(createMongoClient(mongodbUri)),
+  };
+};
+
 // ---------- Módulo Companies ----------
-// Si existe MONGODB_URI se usa MongoDB; si no, la lista en memoria.
-const companyRepository: CompanyRepository = process.env.MONGODB_URI
-  ? new MongoCompanyRepository(createMongoClient(process.env.MONGODB_URI))
-  : new InMemoryCompanyRepository();
-console.log(`Companies persistence: ${process.env.MONGODB_URI ? 'MongoDB' : 'in memory'}`);
+const { name: companiesAdapterName, repository: companyRepository } = createCompanyRepository();
+console.log(`Companies persistence: ${companiesAdapterName}`);
 
 const companyService = new CompanyService(companyRepository);
 app.use('/companies', createCompanyRouter(companyService));
