@@ -21,6 +21,9 @@ import { MongoCompanyRepository } from './modules/companies/adapters/persistence
 import { CompanyRepository } from './modules/companies/ports/CompanyRepository';
 import { createMongoClient } from './shared/database/mongoClient';
 
+import { PrismaVacancyRepository } from './modules/vacancies/adapters/persistence/PrismaVacancyRepository';
+import { createPrismaClient } from './shared/database/prismaClient';
+
 // Crea la aplicación de Express.
 const app = express();
 
@@ -33,12 +36,35 @@ const sampleVacancies = [
   { id: 2, title: 'Analista de Datos', company: 'DataSur', modality: 'híbrido', salary: 1100 },
 ];
 
+// Elige el repositorio de vacantes según las variables de entorno.
+// Devuelve el repositorio y un nombre, para poder avisar por consola cuál se está usando.
+const createVacancyRepository = (): { name: string; repository: VacancyRepository } => {
+  const databaseUrl = process.env.DATABASE_URL;
+
+  // Sin DATABASE_URL: lista en memoria.
+  if (!databaseUrl) {
+    return { name: 'in memory', repository: new InMemoryVacancyRepository(sampleVacancies) };
+  }
+
+  // Con VACANCIES_ADAPTER=prisma: PostgreSQL a través de Prisma (ORM).
+  if (process.env.VACANCIES_ADAPTER === 'prisma') {
+    return {
+      name: 'PostgreSQL with Prisma',
+      repository: new PrismaVacancyRepository(createPrismaClient(databaseUrl)),
+    };
+  }
+
+  // Por defecto: PostgreSQL con SQL escrito a mano (paquete pg).
+  return {
+    name: 'PostgreSQL with pg',
+    repository: new PostgresVacancyRepository(createPostgresPool(databaseUrl)),
+  };
+};
+
 // ---------- Módulo Vacancies ----------
 // Si existe DATABASE_URL se usa PostgreSQL; si no, la lista en memoria.
-const vacancyRepository: VacancyRepository = process.env.DATABASE_URL
-  ? new PostgresVacancyRepository(createPostgresPool(process.env.DATABASE_URL))
-  : new InMemoryVacancyRepository(sampleVacancies);
-console.log(`Vacancies persistence: ${process.env.DATABASE_URL ? 'PostgreSQL' : 'in memory'}`);
+const { name: vacanciesAdapterName, repository: vacancyRepository } = createVacancyRepository();
+console.log(`Vacancies persistence: ${vacanciesAdapterName}`);
 
 // El servicio recibe el repositorio y las rutas reciben el servicio.
 const vacancyService = new VacancyService(vacancyRepository);
