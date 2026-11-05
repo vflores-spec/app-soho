@@ -1,7 +1,7 @@
 import { InMemoryVacancyRepository } from './InMemoryVacancyRepository';
 
 // Datos de ejemplo (datos de prueba en español).
-const sampleVacancy = { title: 'QA Tester', company: 'Tech Andes', modality: 'remoto', salary: 800 };
+const sampleVacancy = { title: 'QA Tester', companyId: 'empresa-1', modality: 'remoto', salary: 800 };
 
 describe('InMemoryVacancyRepository', () => {
   it('starts empty when no initial vacancies are given', async () => {

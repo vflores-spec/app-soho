@@ -37,8 +37,8 @@ app.use(express.json());
 
 // Vacantes de ejemplo para el modo "memoria" (datos de prueba en español).
 const sampleVacancies = [
-  { id: 1, title: 'Desarrollador Backend Jr', company: 'Tech Andes', modality: 'remoto', salary: 900 },
-  { id: 2, title: 'Analista de Datos', company: 'DataSur', modality: 'híbrido', salary: 1100 },
+  { id: 1, title: 'Desarrollador Backend Jr', companyId: 'empresa-1', companyName: 'Tech Andes', modality: 'remoto', salary: 900 },
+  { id: 2, title: 'Analista de Datos', companyId: 'empresa-2', companyName: 'DataSur', modality: 'híbrido', salary: 1100 },
 ];
 
 // Elige el repositorio de vacantes según las variables de entorno.
@@ -87,7 +87,7 @@ const createCompanyRepository = (): { name: string; repository: CompanyRepositor
       repository: new PrismaCompanyRepository(createPrismaClient(databaseUrl)),
     };
   }
-  
+
   // Sin MONGODB_URI: lista en memoria.
   if (!mongodbUri) {
     return { name: 'in memory', repository: new InMemoryCompanyRepository() };
