@@ -4,7 +4,6 @@ import express from 'express';
 // Piezas de Vacancies.
 import { createVacancyRouter } from './modules/vacancies/adapters/http/vacancyRoutes';
 import { InMemoryVacancyRepository } from './modules/vacancies/adapters/persistence/InMemoryVacancyRepository';
-import { PostgresVacancyRepository } from './modules/vacancies/adapters/persistence/PostgresVacancyRepository';
 import { VacancyService } from './modules/vacancies/application/VacancyService';
 import { VacancyRepository } from './modules/vacancies/ports/VacancyRepository';
 
@@ -14,7 +13,6 @@ import { InMemoryCompanyRepository } from './modules/companies/adapters/persiste
 import { CompanyService } from './modules/companies/application/CompanyService';
 
 // Piezas compartidas.
-import { createPostgresPool } from './shared/database/postgresPool';
 import { errorHandler, notFoundHandler } from './shared/httpErrorHandlers';
 
 import { MongoCompanyRepository } from './modules/companies/adapters/persistence/MongoCompanyRepository';
@@ -51,18 +49,10 @@ const createVacancyRepository = (): { name: string; repository: VacancyRepositor
     return { name: 'in memory', repository: new InMemoryVacancyRepository(sampleVacancies) };
   }
 
-  // Con VACANCIES_ADAPTER=prisma: PostgreSQL a través de Prisma (ORM).
-  if (process.env.VACANCIES_ADAPTER === 'prisma') {
-    return {
-      name: 'PostgreSQL with Prisma',
-      repository: new PrismaVacancyRepository(createPrismaClient(databaseUrl)),
-    };
-  }
-
-  // Por defecto: PostgreSQL con SQL escrito a mano (paquete pg).
+  // Con DATABASE_URL: PostgreSQL a través de Prisma (ORM).
   return {
-    name: 'PostgreSQL with pg',
-    repository: new PostgresVacancyRepository(createPostgresPool(databaseUrl)),
+    name: 'PostgreSQL with Prisma',
+    repository: new PrismaVacancyRepository(createPrismaClient(databaseUrl)),
   };
 };
 
