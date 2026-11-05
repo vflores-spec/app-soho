@@ -27,6 +27,8 @@ import { createPrismaClient } from './shared/database/prismaClient';
 import { MongooseCompanyRepository } from './modules/companies/adapters/persistence/MongooseCompanyRepository';
 import { createMongooseConnection } from './shared/database/mongooseConnection';
 
+import { PrismaCompanyRepository } from './modules/companies/adapters/persistence/PrismaCompanyRepository';
+
 // Crea la aplicación de Express.
 const app = express();
 
@@ -75,8 +77,17 @@ app.use('/vacancies', createVacancyRouter(vacancyService));
 
 // Elige el repositorio de empresas según las variables de entorno.
 const createCompanyRepository = (): { name: string; repository: CompanyRepository } => {
+  const databaseUrl = process.env.DATABASE_URL;
   const mongodbUri = process.env.MONGODB_URI;
 
+  // Con COMPANIES_ADAPTER=prisma: PostgreSQL a través de Prisma. Es la opción que permite la relación con Vacancies.
+  if (process.env.COMPANIES_ADAPTER === 'prisma' && databaseUrl) {
+    return {
+      name: 'PostgreSQL with Prisma',
+      repository: new PrismaCompanyRepository(createPrismaClient(databaseUrl)),
+    };
+  }
+  
   // Sin MONGODB_URI: lista en memoria.
   if (!mongodbUri) {
     return { name: 'in memory', repository: new InMemoryCompanyRepository() };
