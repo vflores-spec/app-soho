@@ -1,5 +1,7 @@
 // Express: el framework web.
 import express from 'express';
+// CORS: permite que una página de OTRO origen (el frontend) lea las respuestas de esta API.
+import cors from 'cors';
 
 // Piezas de Vacancies.
 import { createVacancyRouter } from './modules/vacancies/adapters/http/vacancyRoutes';
@@ -29,6 +31,10 @@ import { PrismaCompanyRepository } from './modules/companies/adapters/persistenc
 
 // Crea la aplicación de Express.
 const app = express();
+
+// CORS: solo el origen del frontend puede leer las respuestas. Va ANTES de las rutas.
+// La dirección sale de CORS_ORIGIN; si no existe, se usa la de desarrollo de Vite.
+app.use(cors({ origin: process.env.CORS_ORIGIN ?? 'http://localhost:5173' }));
 
 // Middleware: convierte el JSON que llega en un objeto disponible en req.body.
 app.use(express.json());
