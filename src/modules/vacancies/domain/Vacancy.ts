@@ -7,25 +7,26 @@ import { DomainError } from '../../../shared/DomainError';
 export interface Vacancy {
   id: number; // identificador único, lo asigna el sistema
   title: string; // título del puesto
-  company: string; // empresa que publica
+  companyId: string; // id de la empresa que publica (clave foránea hacia la tabla companies)
   modality: string; // remoto, presencial o híbrido
   salary: number; // salario ofrecido
+  companyName?: string; // nombre de la empresa: lo completa la base de datos con el JOIN (la memoria no lo conoce)
 }
 
 // Una vacante nueva: es una Vacancy SIN el "id" (todavía no se ha guardado).
 // "Omit" significa "toma este tipo y quítale esta propiedad".
-export type NewVacancy = Omit<Vacancy, 'id'>;
+export type NewVacancy = Omit<Vacancy, 'id' | 'companyName'>;
 
 // Recibe datos "crudos" (de cualquier cosa que llegue de afuera), los valida y los devuelve limpios.
 // "unknown" significa "no sé qué es esto todavía": obliga a comprobarlo antes de usarlo.
 export const parseNewVacancy = (input: unknown): NewVacancy => {
   // Si no llegó nada ("??"), usa un objeto vacío. Luego saca cuatro datos de una vez (destructuring).
-  const { title, company, modality, salary } = (input ?? {}) as Record<string, unknown>;
+    const { title, companyId, modality, salary } = (input ?? {}) as Record<string, unknown>;
 
   // REGLA 1: título, empresa y modalidad deben ser texto y no estar vacíos.
   // "typeof x !== 'string'" pregunta si NO es texto. ".trim()" quita espacios de los extremos.
   if (typeof title !== 'string' || !title.trim() ||
-      typeof company !== 'string' || !company.trim() ||
+      typeof companyId !== 'string' || !companyId.trim() ||
       typeof modality !== 'string' || !modality.trim()) {
     // "throw" detiene la función y avisa que se rompió una regla. El mensaje es para el usuario.
     throw new DomainError('El título, la empresa y la modalidad son obligatorios');
@@ -37,5 +38,5 @@ export const parseNewVacancy = (input: unknown): NewVacancy => {
   }
 
   // Si llegó hasta aquí, todo es válido: devuelve los datos ya limpios (sin espacios sobrantes).
-  return { title: title.trim(), company: company.trim(), modality: modality.trim(), salary };
+  return { title: title.trim(), companyId: companyId.trim(), modality: modality.trim(), salary };
 };

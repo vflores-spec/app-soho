@@ -7,7 +7,7 @@ import { InMemoryVacancyRepository } from '../adapters/persistence/InMemoryVacan
 import { VacancyService } from './VacancyService';
 
 // Datos de ejemplo válidos que se reutilizan en las pruebas
-const validInput = { title: 'QA Tester', company: 'Tech Andes', modality: 'remoto', salary: 800 };
+const validInput = { title: 'QA Tester', companyId: 'empresa-1', modality: 'remoto', salary: 800 };
 
 // Función auxiliar: crea un servicio nuevo con un repositorio vacío, para que cada prueba parta de cero.
 const createService = (): VacancyService => new VacancyService(new InMemoryVacancyRepository());
@@ -32,7 +32,7 @@ describe('VacancyService', () => {
     const service = createService();
 
     // Verifica: crear sin título debe fallar con un DomainError ("rejects" = la promesa es rechazada).
-    await expect(service.create({ company: 'Tech Andes' })).rejects.toThrow(DomainError);
+    await expect(service.create({ companyId: 'empresa-1' })).rejects.toThrow(DomainError);
 
     // Verifica: la lista debe seguir vacía, porque no se guardó nada.
     expect(await service.list()).toEqual([]);

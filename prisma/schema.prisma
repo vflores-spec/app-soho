@@ -18,17 +18,46 @@ datasource db {
   provider = "postgresql"
 }
 
-// MODEL: describe una tabla. Esta es la tabla "vacancies" que ya creamos con schema.sql.
+// MODEL Company: la tabla "companies". Es el lado "uno" de la relación: una empresa tiene muchas vacantes.
+model Company {
+  // Identificador de texto único (uuid), generado por Prisma al guardar.
+  id          String    @id @default(uuid())
+
+  name        String    @db.VarChar(150)
+
+  industry    String    @db.VarChar(100)
+
+  // Lista de textos: PostgreSQL guarda arreglos de verdad. Por defecto, una lista vacía.
+  benefits    String[]  @default([])
+
+  // Objeto de forma libre (nombre de red → enlace). Json se guarda como JSONB. "@map" da el nombre de la columna.
+  socialLinks Json      @default("{}") @map("social_links")
+
+  // Lista de sedes, también como Json.
+  locations   Json      @default("[]")
+
+  // Campo "virtual": no es una columna. Permite pedir las vacantes de una empresa.
+  vacancies   Vacancy[]
+
+  @@map("companies")
+}
+
+// MODEL Vacancy: la tabla "vacancies". Es el lado "muchos": cada vacante pertenece a UNA empresa.
 model Vacancy {
-  id       Int     @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
 
-  title    String  @db.VarChar(150)
+  title     String  @db.VarChar(150)
 
-  company  String  @db.VarChar(150)
+  modality  String  @db.VarChar(30)
 
-  modality String  @db.VarChar(30)
+  salary    Decimal @db.Decimal(10, 2)
 
-  salary   Decimal @db.Decimal(10, 2)
+  // La CLAVE FORÁNEA: guarda el id de la empresa dueña de la vacante.
+  companyId String  @map("company_id")
+
+  // La RELACIÓN: une "companyId" con el "id" de Company.
+  // "Restrict" impide borrar una empresa que todavía tiene vacantes.
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
 
   @@map("vacancies")
 }
